@@ -3,91 +3,16 @@ import torch
 from math import pi, sqrt, exp
 import os
 
-from skimage import io, transform
+from skimage import io
 from sklearn import metrics
-from torchvision import transforms
 import torch.nn.functional as F
 from utils import binary
-import SimpleITK as sitk
-from scipy.ndimage import zoom, gaussian_filter1d
-from scipy.signal import convolve
-import denseCRF
-import denseCRF3D
 from typing import Any, Dict, Generator, ItemsView, List, Tuple
 
 
 from tqdm import tqdm
 import argparse
 
-
-# def densecrf3d(I, P, param):
-#     """
-#     input parameters:
-#         I: a numpy array of shape [D, H, W, C], where C is the channel number
-#            type of I should be np.uint8, and the values are in [0, 255]
-#         P: a probability map of shape [D, H, W, L], where L is the number of classes
-#            type of P should be np.float32
-#         param: a tuple giving parameters of CRF. see the following two examples for details.
-#     """
-#     return denseCRF3D.densecrf3d(I, P, param)
-
-def densecrf3d(image,mask):
-    """
-    input parameters:
-        I: a numpy array of shape [D, H, W, C], where C is the channel number
-           type of I should be np.uint8, and the values are in [0, 255]
-        P: a probability map of shape [D, H, W, L], where L is the number of classes
-           type of P should be np.float32
-        param: a tuple giving parameters of CRF. see the following two examples for details.
-    """
-    # load initial labels, and convert it into an array 'prob' with shape [H, W, C]
-    # where C is the number of labels
-    # prob[h, w, c] means the probability of pixel at (h, w) belonging to class c.
-    Iq = np.asarray(image)
-    Iq_min, Iq_max = Iq.min(), Iq.max()
-    Iq = (Iq - Iq_min) / (Iq_max-Iq_min) * 255.
-    Iq = Iq.transpose((0,2,3,1)).astype(np.uint8)[:,:,:,0:1]
-    prob = np.asarray(mask).transpose((0,2,3,1)).astype(np.float32)
-    # print(Iq.shape,prob.shape)
-
-    # probability map for each class
-
-    dense_crf_param = {}
-    dense_crf_param['MaxIterations'] = 2.0
-    dense_crf_param['PosW'] = 0.5
-    dense_crf_param['PosRStd'] = 2
-    dense_crf_param['PosCStd'] = 2
-    dense_crf_param['PosZStd'] = 2
-    dense_crf_param['BilateralW'] = 1.0
-    dense_crf_param['BilateralRStd'] = 2.0
-    dense_crf_param['BilateralCStd'] = 2.0
-    dense_crf_param['BilateralZStd'] = 2.0
-    dense_crf_param['ModalityNum'] = 1
-    dense_crf_param['BilateralModsStds'] = (5.0,)
-
-    lab = denseCRF3D.densecrf3d(Iq, prob, dense_crf_param)
-    return lab.astype(int)
-
-def densecrf(image,mask):
-    # load initial labels, and convert it into an array 'prob' with shape [H, W, C]
-    # where C is the number of labels
-    # prob[h, w, c] means the probability of pixel at (h, w) belonging to class c.
-    Iq = np.asarray(image)
-    Iq_min, Iq_max = Iq.min(), Iq.max()
-    Iq = (Iq - Iq_min) / (Iq_max-Iq_min) * 255.
-    Iq = Iq.transpose((1,2,0)).astype(np.uint8)
-    prob = np.asarray(mask).transpose((1,2,0))
-
-
-    w1    = 4.  # weight of bilateral term
-    alpha = 50.    # spatial std
-    beta  = 20    # rgb  std
-    w2    = 3.0   # weight of spatial term
-    gamma = 3     # spatial std
-    it    = 4.0   # iteration
-    param = (w1, alpha, beta, w2, gamma, it)
-    lab = denseCRF.densecrf(Iq, prob, param)
-    return lab.astype(int)
 
 def calculate_metric_percase(pred, gt, is_test = False):
     pred[pred > 0] = 1
@@ -315,11 +240,6 @@ def test_single_volume(image, label, cls_label, net, classes, patch_size=[256, 2
         for ind in range(image.shape[0]):
             slice = image[ind, :, :,:]
             gt_cls = torch_cls[:,ind].unsqueeze(-1).unsqueeze(-1)
-            # label_slice = label[ind, :, :,:]
-
-            #imshow(slice, "./out/" + case[:-4] + "_img_" + str(ind) + ".jpg", denormalize=False)
-            #imshow(label_slice, "./out/" + case[:-4] + "_label_" + str(ind) + ".jpg", denormalize=False)
-
             x, y = slice.shape[1], slice.shape[2]
             input = torch.from_numpy(slice).unsqueeze(0).float().cuda()
             box, box_mask = None, None
@@ -328,30 +248,18 @@ def test_single_volume(image, label, cls_label, net, classes, patch_size=[256, 2
             point = None
             if random_points is not None:
                 point = torch.from_numpy(random_points[ind]).unsqueeze(0).cuda()
-            # net.eval()
             with torch.no_grad():
                 outputs, class_logits, final_attn_weight, _ = net(image=input,low_res=True,bbox_masks=box_mask,points=point)
 
-                # pred = (output.softmax(1) * class_logits.unsqueeze(-1).sigmoid()).squeeze().cpu().numpy()
                 cls_pred = class_logits.unsqueeze(-1).sigmoid()
                 cls_pred[:,0] = 1.
                 cls_prediction[ind] = cls_pred.squeeze().cpu().detach().numpy()
-                # print(outputs.shape,gt_cls.shape)
                 if use_gt:
-                    out = torch.softmax(outputs, dim=1) *  gt_cls.to(outputs.device)#
+                    out = torch.softmax(outputs, dim=1) *  gt_cls.to(outputs.device)
                 else:
                     threshould=0.5
-                    out = torch.softmax(outputs, dim=1) #* (cls_pred > threshould) # gt_cls.to(outputs.device)#
+                    out = torch.softmax(outputs, dim=1) 
 
-                    # move the prob of the non-existing class to the background
-                    # non_existing_points_prob = (out * (cls_pred < threshould)).sum(1)
-                    # out[:,0:1,:,:]+=non_existing_points_prob
-
-                    # out = out * (cls_pred >= threshould)
-
-                # out = densecrf(input.squeeze().cpu().numpy(),out)
-
-                #imshow(out,  "./out_1/" + case[:-4] + "_pre_" + str(ind) + ".jpg", denormalize=False)
                 if case is not None and test_save_path is not None:
                     onehot_points = general_to_onehot(final_attn_weight).cpu().numpy()
                     prediction_mask = out.cpu().numpy()
@@ -366,92 +274,22 @@ def test_single_volume(image, label, cls_label, net, classes, patch_size=[256, 2
                     ).squeeze(0).cpu().detach().numpy()
                 else:
                     pred = out.squeeze(0).cpu().detach().numpy()
-                # print(pred.shape,prediction.shape)
                 prediction[ind] = pred
     else:
-        input = torch.from_numpy(image).unsqueeze(
-            0).unsqueeze(0).float().cuda()
-        # net.eval()
-        with torch.no_grad():
-            out = torch.argmax(torch.softmax(net(input), dim=1), dim=1).squeeze(0)
-            prediction = out.cpu().detach().numpy()
+        raise NotImplementedError
     
-    # prediction = densecrf3d(patch_size_image,prediction)
-    # msak=[pred > 0.5]
     if use_gt: prediction = prediction.argmax(1) 
     else:
         threshould=0.5
-        smooth_label = False
-        # smooth the pred cls labels
-        if smooth_label:
-            kernel_size = 5
-            # kernel = (np.ones(kernel_size) / kernel_size).reshape(kernel_size,1)
-            kernel = np.array(gauss(kernel_size,1.7)).reshape(kernel_size,1)
-            # print(kernel)
-            cls_prediction = convolve(cls_prediction, kernel, mode='same')
-            # print(cls_prediction)
 
         prediction = (prediction * (cls_prediction > threshould).reshape(*cls_prediction.shape,1,1)).argmax(1) 
     del image
     del patch_size_image
     metric_list = []
     for i in range(1, classes):
-        # masks = prediction == i
-        # mask_out = np.zeros_like(masks)
         mask_out = prediction == i
-        # n_pics = mask_out.shape[-1]*mask_out.shape[-2]
-        # for ind in range(prediction.shape[0]):
-        #     mask = mask_out[ind]
-        #     if mask.sum()>(0.3*n_pics):
-        #         mask=0
-        #     # mask, changed = remove_small_regions(mask, min_area, mode="holes")
-        #     # unchanged = not changed
-        #     # mask, changed = remove_small_regions(mask, min_area, mode="islands")
-        #     # unchanged = unchanged and not changed
-        #     mask_out[ind] = mask
         metric_list.append(calculate_metric_percase(mask_out, label == i))
-    # if test_save_path is not None:
-    #     img_itk = sitk.GetImageFromArray(image.astype(np.float32))
-    #     prd_itk = sitk.GetImageFromArray(prediction.astype(np.float32))
-    #     lab_itk = sitk.GetImageFromArray(label.astype(np.float32))
-    #     img_itk.SetSpacing((1, 1, z_spacing))
-    #     prd_itk.SetSpacing((1, 1, z_spacing))
-    #     lab_itk.SetSpacing((1, 1, z_spacing))
-    #     sitk.WriteImage(prd_itk, test_save_path + '/'+case + "_pred.nii.gz")
-    #     sitk.WriteImage(img_itk, test_save_path + '/'+ case + "_img.nii.gz")
-    #     sitk.WriteImage(lab_itk, test_save_path + '/'+ case + "_gt.nii.gz")
-
-    # cls metric
-    # print(cls_label.shape,cls_prediction.shape)
+    
     APs = metrics.average_precision_score(cls_label, cls_prediction[:,1:], average=None) 
-    # print(APs,metric_list)
     return metric_list, APs
     
-
-def remove_small_regions(
-    mask: np.ndarray, area_thresh: float, mode: str
-) -> Tuple[np.ndarray, bool]:
-    """
-    Removes small disconnected regions and holes in a mask. Returns the
-    mask and an indicator of if the mask has been modified.
-    adopted form SAM
-    """
-
-    import cv2  # type: ignore
-
-    assert mode in ["holes", "islands"]
-    correct_holes = mode == "holes"
-    working_mask = (correct_holes ^ mask).astype(np.uint8)
-    n_labels, regions, stats, _ = cv2.connectedComponentsWithStats(working_mask, 8)
-    sizes = stats[:, -1][1:]  # Row 0 is background label
-    small_regions = [i + 1 for i, s in enumerate(sizes) if s < area_thresh]
-    if len(small_regions) == 0:
-        return mask, False
-    fill_labels = [0] + small_regions
-    if not correct_holes:
-        fill_labels = [i for i in range(n_labels) if i not in fill_labels]
-        # If every region is below threshold, keep largest
-        if len(fill_labels) == 0:
-            fill_labels = [int(np.argmax(sizes)) + 1]
-    mask = np.isin(regions, fill_labels)
-    return mask, True

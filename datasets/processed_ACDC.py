@@ -32,10 +32,6 @@ def random_gt_points(masks,n_points,n_class):
         points_y = points // masks_size[0]
         points_mask[i,:,0] = points_x
         points_mask[i,:,1] = points_y
-    # print(masks.shape)
-    # print(points_mask[1,:,0],points_mask[1,:,1])
-    # print(masks[points_mask[1,:,0],points_mask[1,:,1]])
-    # print(masks[points_mask[2,:,0],points_mask[2,:,1]])
     return points_mask# (n_class,n_points,n_tokens)
 
 

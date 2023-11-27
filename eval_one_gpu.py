@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-train the image encoder and mask decoder
-freeze prompt image encoder
-"""
+# Evaluation code for AI-SAM on medical image segmentation tasks
 
 # %% setup environment
 import numpy as np
@@ -19,7 +16,6 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 from datasets.processed_ACDC import generate_dataset as generate_acdc_dataset
-from datasets.lidc import generate_dataset as generate_lidc_dataset
 from datasets.synapse import generate_dataset as generate_synapse_dataset
 from utils.evaluation import process_med, test_med
 from ai_sam.ai_sam import AISAM
