@@ -169,15 +169,15 @@ class PromptEncoder(nn.Module):
         )
         if auto_prompt is not None and use_auto_points:
             sparse_embeddings = torch.cat([sparse_embeddings, auto_prompt], dim=1)
-            if points is None:
-                padding_point = torch.zeros((auto_prompt.shape[0], 1, 2), device=auto_prompt.device)
-                padding_label = -torch.ones((auto_prompt.shape[0], 1), device=auto_prompt.device)
-                pad_embedding = self.pe_layer.forward_with_coords(
-                    padding_point, self.input_image_size
-                )
-                pad_embedding[padding_label == -1] = 0.0
-                pad_embedding[padding_label == -1] += self.not_a_point_embed.weight
-                sparse_embeddings = torch.cat([sparse_embeddings, pad_embedding], dim=1)
+            # if points is None:
+            #     padding_point = torch.zeros((auto_prompt.shape[0], 1, 2), device=auto_prompt.device)
+            #     padding_label = -torch.ones((auto_prompt.shape[0], 1), device=auto_prompt.device)
+            #     pad_embedding = self.pe_layer.forward_with_coords(
+            #         padding_point, self.input_image_size
+            #     )
+            #     pad_embedding[padding_label == -1] = 0.0
+            #     pad_embedding[padding_label == -1] += self.not_a_point_embed.weight
+            #     sparse_embeddings = torch.cat([sparse_embeddings, pad_embedding], dim=1)
 
         if points is not None:
             coords, labels = points
