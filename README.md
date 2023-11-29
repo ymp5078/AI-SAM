@@ -1,6 +1,6 @@
 # AI-SAM
 Automatic and Interactive Segment Anything Model. When training, this method learn to generate the segmentation masks for each class as well as the corresponing point prompts using only the segmentation masks as the targets. During inference time, AI-SAM automatically generates a set of point prompts and the segmentation masks for each class. To modify the segmentation masks, the user can modify the point prompts. The overall pipeline is below:
-![ai-sam](./assets/ai-sam-main.pdf) 
+![ai-sam](./assets/ai-sam.png) 
 
 
 ## Evaluation
