@@ -5,7 +5,7 @@ AI-SAM: Automatic and Interactive Segment Anything Model
 
 Yimu Pan, Sitao Zhang, Alison D. Gernand, Jeffery A. Goldstein, James Z. Wang
 
-[[`Paper`](https://arxiv.org/abs/2312.03119)] [[`BibTeX`](#citations)]
+[[`Paper`](https://arxiv.org/abs/2312.03119)] [[`BibTeX`](#citations)] [[`Demo`](automatic_interactive_demo.ipynb)]
 
 The Automatic and Interactive Segment Anything Model (AI-SAM) is designed to streamline the process of generating segmentation masks for various classes automatically while support interactive user input. During its training phase, AI-SAM acquires the capability to produce both the point prompts and segmentation masks for each class, using only the segmentation masks themselves as learning targets.
 
