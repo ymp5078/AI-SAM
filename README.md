@@ -1,6 +1,21 @@
 # AI-SAM
-Automatic and Interactive Segment Anything Model. When training, this method learn to generate the segmentation masks for each class as well as the corresponing point prompts using only the segmentation masks as the targets. During inference time, AI-SAM automatically generates a set of point prompts and the segmentation masks for each class. To modify the segmentation masks, the user can modify the point prompts. The overall pipeline is below:
+
+AI-SAM: Automatic and Interactive Segment Anything Model
+
+
+Yimu Pan, Sitao Zhang, Alison D. Gernand, Jeffery A. Goldstein, James Z. Wang
+
+[[`Paper`](https://arxiv.org/abs/2312.03119)] [[`BibTeX`](#citations)]
+
+The Automatic and Interactive Segment Anything Model (AI-SAM) is designed to streamline the process of generating segmentation masks for various classes automatically while support interactive user input. During its training phase, AI-SAM acquires the capability to produce both the point prompts and segmentation masks for each class, using only the segmentation masks themselves as learning targets.
+
+In the inference stage, AI-SAM automatically generates a set of point prompts, along with the segmentation masks for each class. This feature facilitates a user-friendly interaction; users can directly modify the point prompts to adjust the segmentation masks as needed.
+Below is an overview of the entire AI-SAM pipeline:
 ![ai-sam](./assets/ai-sam.png) 
+
+## Performance
+The detail analysis is in the paper. We present the main result table below:
+![ai-sam-result](./assets/main_result.png) 
 
 ## Installation
 The code requires `python>=3.8`, `pytorch>=1.7`, and `torchvision>=0.8`.
