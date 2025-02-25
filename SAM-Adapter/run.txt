@@ -1,0 +1,13 @@
+# evaluation
+# interactive evaluation, plot bbox and points
+python test_interactive.py --config save/_cod-sam-vit-h-new-1_autoprompt_freeze_20/config.yaml --model save/_cod-sam-vit-h-new-1_autoprompt_freeze_20/model_epoch_last.pth --use_bbox --save_path /scratch/bbmr/ymp5078/segmentations/SAM-Adapter-PyTorch/dumps/cod10k_autoprompt_interactive_vis --return_points
+
+# interactive evaluation, plot bbox
+python test_interactive.py --config save/_cod-sam-vit-h-new-1_autoprompt_freeze_20/config.yaml --model save/_cod-sam-vit-h-new-1_autoprompt_freeze_20/model_epoch_last.pth --use_bbox --save_path /scratch/bbmr/ymp5078/segmentations/SAM-Adapter-PyTorch/dumps/cod10k_autoprompt_interactive_vis
+
+# interactive evaluation for SAM, plot bbox
+python test_interactive.py --config save/_cod-sam-vit-h-new-1_autoprompt_freeze_20/config.yaml --model /scratch/bbmr/ymp5078/segmentations/weights/sam_vit_h_4b8939.pth --use_bbox --save_path /scratch/bbmr/ymp5078/segmentations/SAM-Adapter-PyTorch/dumps/cod10k_sam_interactive_vis --use_base_sam
+
+
+# automatic evaluation, plot points
+

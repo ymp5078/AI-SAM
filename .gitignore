@@ -2,3 +2,5 @@
 *__pycache__*
 *copy*
 *.ipynb_checkpoints*
+*png
+*pickle

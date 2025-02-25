@@ -48,8 +48,8 @@ python eval_one_gpu.py --dataset synapse --use_amp -checkpoint [path-to-the-down
 ## Automatic and Interactive Demo
 Refer to [this notebook](automatic_interactive_demo.ipynb) for detail. AI-SAM will first generate a set of foreground and background points base on the class of choice and the user can modify the points base on the segmentation result.
 
-## TODO
-1. Add code for natural images.
+## Using AI-SAM with SAM-Adapter
+Please refer to [SAM-Adapter](./SAM-Adapter/README.md) dir.
 
 ## License
 
