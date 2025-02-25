@@ -69,4 +69,4 @@ If you find this work useful, please cite:
 
 
 ## Acknowledgements
-The code is modified from [MedSAM](https://github.com/bowang-lab/MedSAM/tree/main) and [SAM](https://github.com/facebookresearch/segment-anything). We also used the LoRA implementation from [SAMed](https://github.com/hitachinsk/SAMed/tree/main).
+The code is modified from [MedSAM](https://github.com/bowang-lab/MedSAM/tree/main), [SAM-Adapter](https://github.com/tianrun-chen/SAM-Adapter-PyTorch) and [SAM](https://github.com/facebookresearch/segment-anything). We also used the LoRA implementation from [SAMed](https://github.com/hitachinsk/SAMed/tree/main).
